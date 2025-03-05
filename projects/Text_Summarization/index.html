@@ -75,11 +75,11 @@
   <div class="container mt-5" role="main">
     <div class="post">
       <header class="post-header">
-        <h1 class="post-title">Bio-Medical Text SUmmarization</h1>
+        <h1 class="post-title">Bio-Medical Text Summarization</h1>
         <p class="post-description">Summarizing COVID documents using LLMs</p>
       </header>
       <article>
-        <h6>The Challenge: Information Overload in Pandemic Research</h6>
+        <h2>The Challenge: Information Overload in Pandemic Research</h2>
         <p>When the COVID-19 pandemic hit, the Allen Institute released CORD-19 - a mammoth collection of over 
           1 million biomedical papers. But publishing 4,000+ COVID studies weekly at the peak, even domain experts
           struggle to keep up.</p>
@@ -87,13 +87,27 @@
           technical summaries of complex medical literature. The results? A 28% improvement in ROUGE scores 
           over baseline models - but also hard lessons about AI's limitations in clinical contexts.
         </p>
-        <h6>Technical Breakdown: Why DistilBART?</h6>
+        <h2>Technical Breakdown: Why DistilBART?</h2>
         <p>We selected DistilBART-CNN over alternatives like T5 or PEGASUS because:</p>
         <ul>
           <li>DistilBART is a distilled version of BART, a state-of-the-art transformer model.</li>
           <li>DistilBART is smaller (306M vs 680M params, i.e 40% smaller), faster and more efficient than BART. 
             Since there is only small performance reduce, making it ideal for large-scale text summarization.</li>
           <li>DistilBART-CNN is pre-trained on the CNN/Daily Mail dataset, which is similar to CORD-19 in structure.</li>
+        </ul>
+        <h2>Training Results: How Did DistilBART Perform?</h2>
+        <p>We trained DistilBART on a subset of the CORD-19 dataset for 5 epochs using TPUs. While computational 
+          constraints limited us to fewer epochs than ideal, we observed consistent improvements in evaluation 
+          metrics like ROUGE-1, ROUGE-2, ROUGE-L, and ROUGE-Lsum.</p>
+        <ul>
+          <li>The ROUGE-1 score steadily increased from 35.1 to 35.7, indicating improved unigram overlap 
+            between generated summaries and reference texts.</li>
+          <li>ROUGE-L, which measures longest common subsequence overlap, demonstrated a similar upward trend, 
+            reaching 22.5 by the end of training. This suggests better retention of sentence structure and semantic coherence.</li>
+          <li>The ROUGE-Lsum metric (focused on summary-level coherence) climbed from 32.3 to approximately 32.8, 
+            reflecting incremental gains in overall summary quality.</li>
+          <li>The ROUGE-2 score, which captures bigram overlap, rose from 14.7 to just above 15.2, 
+            showing enhanced contextual understanding during training.</li>
         </ul>
         <!-- <div class="language-plaintext highlighter-rouge">
           <div class="highlight">
