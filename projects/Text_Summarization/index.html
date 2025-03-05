@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -6,7 +7,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <title> project 8 | Peeyush Dyavarashetty </title>
+  <title> Bio-Medical Text Summarization | Peeyush Dyavarashetty </title>
   <meta name="author" content="Peeyush Dyavarashetty">
   <meta name="description" content="an other project with a background image and giscus comments">
   <meta name="keywords" content="jekyll, jekyll-theme, academic-website, portfolio-website">
@@ -43,22 +44,22 @@
         <div class="collapse navbar-collapse text-right" id="navbarNav">
           <ul class="navbar-nav ml-auto flex-nowrap">
             <li class="nav-item "> <a class="nav-link" href="/">about </a> </li>
-            <li class="nav-item "> <a class="nav-link" href="/blog/">blog </a> </li>
-            <li class="nav-item "> <a class="nav-link" href="/publications/">publications </a> </li>
+            <!-- <li class="nav-item "> <a class="nav-link" href="/blog/">blog </a> </li>
+            <li class="nav-item "> <a class="nav-link" href="/publications/">publications </a> </li> -->
             <li class="nav-item active"> <a class="nav-link" href="/projects/">projects <span
                   class="sr-only">(current)</span> </a> </li>
             <li class="nav-item "> <a class="nav-link" href="/repositories/">repositories </a> </li>
             <li class="nav-item "> <a class="nav-link" href="/cv/">cv </a> </li>
-            <li class="nav-item "> <a class="nav-link" href="/teaching/">teaching </a> </li>
-            <li class="nav-item "> <a class="nav-link" href="/people/">people </a> </li>
-            <li class="nav-item dropdown "> <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown"
-                role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">submenus </a>
+            <!-- <li class="nav-item "> <a class="nav-link" href="/teaching/">teaching </a> </li> -->
+            <!-- <li class="nav-item "> <a class="nav-link" href="/people/">people </a> </li> -->
+            <!-- <li class="nav-item dropdown "> <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" 
+                role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">submenus </a> 
               <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown"> <a class="dropdown-item "
-                  href="/publications/">publications</a>
+                  href="/publications/">publications</a> 
                 <div class="dropdown-divider"></div> <a class="dropdown-item " href="/projects/">projects</a>
                 <div class="dropdown-divider"></div> <a class="dropdown-item " href="/blog/">blog</a>
               </div>
-            </li>
+            </li> -->
             <li class="nav-item"> <button id="search-toggle" title="Search" onclick="openSearchModal()"> <span
                   class="nav-link">ctrl k <i class="ti ti-search"></i></span> </button> </li>
             <li class="toggle-container"> <button id="light-toggle" title="Change theme"> <i class="ti ti-sun-moon"
@@ -74,25 +75,40 @@
   <div class="container mt-5" role="main">
     <div class="post">
       <header class="post-header">
-        <h1 class="post-title">project 8</h1>
-        <p class="post-description">an other project with a background image and giscus comments</p>
+        <h1 class="post-title">Bio-Medical Text SUmmarization</h1>
+        <p class="post-description">Summarizing COVID documents using LLMs</p>
       </header>
       <article>
-        <p>Every project has a beautiful feature showcase page. It’s easy to include images in a flexible 3-column grid
-          format. Make your photos 1/3, 2/3, or full width.</p>
-        <p>To give your project a background in the portfolio page, just add the img tag to the front matter like so:
+        <h6>The Challenge: Information Overload in Pandemic Research</h6>
+        <p>When the COVID-19 pandemic hit, the Allen Institute released CORD-19 - a mammoth collection of over 
+          1 million biomedical papers. But publishing 4,000+ COVID studies weekly at the peak, even domain experts
+          struggle to keep up.</p>
+        <p>Our team set out to solve this with DistilBART-CORD19, an AI system that automatically generates 
+          technical summaries of complex medical literature. The results? A 28% improvement in ROUGE scores 
+          over baseline models - but also hard lessons about AI's limitations in clinical contexts.
         </p>
-        <div class="language-plaintext highlighter-rouge">
+        <h6>Technical Breakdown: Why DistilBART?</h6>
+        <p>We selected DistilBART-CNN over alternatives like T5 or PEGASUS because:</p>
+        <ul>
+          <li>DistilBART is a distilled version of BART, a state-of-the-art transformer model.</li>
+          <li>DistilBART is smaller (306M vs 680M params, i.e 40% smaller), faster and more efficient than BART. 
+            Since there is only small performance reduce, making it ideal for large-scale text summarization.</li>
+          <li>DistilBART-CNN is pre-trained on the CNN/Daily Mail dataset, which is similar to CORD-19 in structure.</li>
+        </ul>
+        <!-- <div class="language-plaintext highlighter-rouge">
           <div class="highlight">
-            <pre class="highlight"><code>---
-layout: page
-title: project
-description: a project with a background image
-img: /assets/img/12.jpg
----
-</code></pre>
+            <pre class="highlight">
+              <code>
+                ---
+                layout: page
+                title: project
+                description: a project with a background image
+                img: /assets/img/12.jpg
+                ---
+              </code>
+            </pre>
           </div>
-        </div>
+        </div> -->
         <div class="row">
           <div class="col-sm mt-3 mt-md-0">
             <figure>
