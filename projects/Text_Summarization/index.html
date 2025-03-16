@@ -97,23 +97,21 @@
         <div class="language-python highlighter-rouge">
           <div class="highlight">
             <pre class="highlight">
-              <code>
-                # Dataset structure
-                DatasetDict({
-                    train: Dataset({
-                        features: ['abstract', 'fulltext', 'select'],
-                        num_rows: 84077
-                    })
-                    test: Dataset({
-                        features: ['abstract', 'fulltext', 'select'],
-                        num_rows: 10510
-                    })
-                    validation: Dataset({
-                        features: ['abstract', 'fulltext', 'select'],
-                        num_rows: 10510
-                    })
-                })
-              </code>
+              <code><span class="nt"># Dataset structure</span>
+DatasetDict({
+    train: Dataset({
+        features: ['abstract', 'fulltext', 'select'],
+        num_rows: 84077
+    })
+    test: Dataset({
+        features: ['abstract', 'fulltext', 'select'],
+        num_rows: 10510
+    })
+    validation: Dataset({
+        features: ['abstract', 'fulltext', 'select'],
+        num_rows: 10510
+    })
+})</code>
             </pre>
           </div>
         </div>
@@ -146,14 +144,12 @@
         <div class="language-python highlighter-rouge">
           <div class="highlight">
             <pre class="highlight">
-              <code>
-<span class="nt"># Importing the pre-trained model and tokenizer</span>
+              <code><span class="nt"># Importing the pre-trained model and tokenizer</span>
 from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
 
-model_name = "lxyuan/distilbart-finetuned-summarization"
+model_name = <span class="s">"lxyuan/distilbart-finetuned-summarization"</span>
 model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
-tokenizer = AutoTokenizer.from_pretrained(model_name)              
-              </code>
+tokenizer = AutoTokenizer.from_pretrained(model_name)</code>
             </pre>
           </div>
         </div>
@@ -189,37 +185,34 @@ tokenizer = AutoTokenizer.from_pretrained(model_name)
         <div class="language-python highlighter-rouge">
           <div class="highlight">
             <pre class="highlight">
-              <code>
-                # Training arguments
-                from transformers import Seq2SeqTrainingArguments, Seq2SeqTrainer
-                
-                args = Seq2SeqTrainingArguments(
-                    output_dir="./distilbart-finetuned-cord-19",
-                    evaluation_strategy="epoch",
-                    learning_rate=2e-5,
-                    per_device_train_batch_size=12,
-                    per_device_eval_batch_size=12,
-                    weight_decay=0.01,
-                    save_total_limit=3,
-                    num_train_epochs=1,
-                    predict_with_generate=True,
-                )
-                
-                # Initialize trainer
-                trainer = Seq2SeqTrainer(
-                    model=model,
-                    args=args,
-                    train_dataset=tokenized_train,
-                    eval_dataset=tokenized_validation,
-                    data_collator=data_collator,
-                    tokenizer=tokenizer,
-                    compute_metrics=compute_metrics,
-                )
-                
-                # Start training
-                trainer.train()
-                
-              </code>
+              <code><span class="nt"># Training arguments</span>
+from transformers import Seq2SeqTrainingArguments, Seq2SeqTrainer
+
+args = Seq2SeqTrainingArguments(
+    output_dir="./distilbart-finetuned-cord-19",
+    evaluation_strategy="epoch",
+    learning_rate=2e-5,
+    per_device_train_batch_size=12,
+    per_device_eval_batch_size=12,
+    weight_decay=0.01,
+    save_total_limit=3,
+    num_train_epochs=1,
+    predict_with_generate=True,
+)
+
+<span class="nt"># Initialize trainer</span>
+trainer = Seq2SeqTrainer(
+    model=model,
+    args=args,
+    train_dataset=tokenized_train,
+    eval_dataset=tokenized_validation,
+    data_collator=data_collator,
+    tokenizer=tokenizer,
+    compute_metrics=compute_metrics,
+)
+
+<span class="nt"># Start training</span>
+trainer.train()</code>
             </pre>
           </div>
         <p>Initially, we planned for 5 epochs of training, but computational limitations forced us to reduce to just one epoch. 
