@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 
@@ -79,51 +78,212 @@
         <p class="post-description">Summarizing COVID documents using LLMs</p>
       </header>
       <article>
-        <h2>The Challenge: Information Overload in Pandemic Research</h2>
-        <p>When the COVID-19 pandemic hit, the Allen Institute released CORD-19 - a mammoth collection of over 
+        <h3>The Challenge: Information Overload in Pandemic Research</h3>
+        <p>When the COVID-19 pandemic hit, the Allen Institute released CORD-19 - a mammoth collection of over
           1 million biomedical papers. But publishing 4,000+ COVID studies weekly at the peak, even domain experts
           struggle to keep up.</p>
-        <p>Our team set out to solve this with DistilBART-CORD19, an AI system that automatically generates 
-          technical summaries of complex medical literature. The results? A 28% improvement in ROUGE scores 
+        <p>Our team set out to solve this with DistilBART-CORD19, an AI system that automatically generates
+          technical summaries of complex medical literature. The results? A 28% improvement in ROUGE scores
           over baseline models - but also hard lessons about AI's limitations in clinical contexts.
         </p>
-        <h2>Technical Breakdown: Why DistilBART?</h2>
-        <p>We selected DistilBART-CNN over alternatives like T5 or PEGASUS because:</p>
+
+        <h3>Data Sources and Preparation</h3>
+        <p>We focused on two key metadata fields from the CORD-19 dataset:</p>
         <ul>
-          <li>DistilBART is a distilled version of BART, a state-of-the-art transformer model.</li>
-          <li>DistilBART is smaller (306M vs 680M params, i.e 40% smaller), faster and more efficient than BART. 
-            Since there is only small performance reduce, making it ideal for large-scale text summarization.</li>
-          <li>DistilBART-CNN is pre-trained on the CNN/Daily Mail dataset, which is similar to CORD-19 in structure.</li>
+          <li><strong>Abstract:</strong> The abstract of the paper, which provides a brief overview of the study.</li>
+          <li><strong>Full Text:</strong> The complete text of the paper, which contains detailed information about the
+            study.</li>
         </ul>
-        <h2>Training Results: How Did DistilBART Perform?</h2>
-        <p>We trained DistilBART on a subset of the CORD-19 dataset for 5 epochs using TPUs. While computational 
-          constraints limited us to fewer epochs than ideal, we observed consistent improvements in evaluation 
-          metrics like ROUGE-1, ROUGE-2, ROUGE-L, and ROUGE-Lsum.</p>
-        <ul>
-          <li>The ROUGE-1 score steadily increased from 35.1 to 35.7, indicating improved unigram overlap 
-            between generated summaries and reference texts.</li>
-          <li>ROUGE-L, which measures longest common subsequence overlap, demonstrated a similar upward trend, 
-            reaching 22.5 by the end of training. This suggests better retention of sentence structure and semantic coherence.</li>
-          <li>The ROUGE-Lsum metric (focused on summary-level coherence) climbed from 32.3 to approximately 32.8, 
-            reflecting incremental gains in overall summary quality.</li>
-          <li>The ROUGE-2 score, which captures bigram overlap, rose from 14.7 to just above 15.2, 
-            showing enhanced contextual understanding during training.</li>
-        </ul>
-        <!-- <div class="language-plaintext highlighter-rouge">
+        <div class="language-python highlighter-rouge">
           <div class="highlight">
             <pre class="highlight">
               <code>
-                ---
-                layout: page
-                title: project
-                description: a project with a background image
-                img: /assets/img/12.jpg
-                ---
+                # Dataset structure
+                DatasetDict({
+                    train: Dataset({
+                        features: ['abstract', 'fulltext', 'select'],
+                        num_rows: 84077
+                    })
+                    test: Dataset({
+                        features: ['abstract', 'fulltext', 'select'],
+                        num_rows: 10510
+                    })
+                    validation: Dataset({
+                        features: ['abstract', 'fulltext', 'select'],
+                        num_rows: 10510
+                    })
+                })
               </code>
             </pre>
           </div>
-        </div> -->
-        <div class="row">
+        </div>
+        
+        <h3>Baseline System: Simple Yet Revealing</h3>
+        <p>Before implementing advanced transformer models, we established a baseline system using:</p>
+        <ul>
+          <li>The first five tokenized sentences from each paper's full text as the abstract.</li>
+          <li>Word2Vec embeddings trained over 10,000 data points for extractive summarization.</li>
+        </ul>
+        <p>The baseline performance metrics revealed an interesting pattern:</p>
+        <ul>
+          <li>ROUGE-1: 77.5</li>
+          <li>ROUGE-2: 49.3</li>
+          <li>ROUGE-L: 2.5</li>
+        </ul>
+        <p>While Rouge1 scores were surprisingly high, the dismal RougeL score (2.5) exposed a critical flaw: 
+          the model could match individual words but failed to capture meaningful sequences. 
+          This validated our need for more sophisticated approaches that understand contextual relationships.</p>
+
+        <h3>Technical Breakdown: Why DistilBART?</h3>
+        <p>We selected DistilBART-CNN over alternatives like T5 or PEGASUS because:</p>
+        <ul>
+          <li>DistilBART is a distilled version of BART, a state-of-the-art transformer model.</li>
+          <li>DistilBART is smaller (306M vs 680M params, i.e 40% smaller), faster and more efficient than BART.
+            Since there is only small performance reduce, making it ideal for large-scale text summarization.</li>
+          <li>DistilBART-CNN is pre-trained on the CNN/Daily Mail dataset, which is similar to CORD-19 in structure.
+          </li>
+        </ul>
+        <div class="language-python highlighter-rouge">
+          <div class="highlight">
+            <pre class="highlight">
+              <code>
+                # Importing the pre-trained model and tokenizer
+                from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
+                
+                model_name = "lxyuan/distilbart-finetuned-summarization"
+                model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
+                tokenizer = AutoTokenizer.from_pretrained(model_name)
+                
+              </code>
+            </pre>
+          </div>
+        </div>
+        
+        <h3>Why ROUGE is Preferred Over BLEU in Text Summarization</h3>
+        <ul>
+          <li>ROUGE (Recall-Oriented Understudy for Gisting Evaluation): Measures how much of the reference 
+            summary appears in the generated summary. It focuses on recall - whether the key information from 
+            the reference has been captured.</li>
+
+          <li>BLEU (Bilingual Evaluation Understudy): Measures how much of the generated text appears in the 
+            reference text. It focuses on precision - whether the generated text is accurate compared to the reference</li>
+        </ul>
+        <p>These metrics were created with different tasks in mind:</p>
+        <ul>
+          <li>ROUGE: Specifically designed for evaluating text summarization.</li>
+          <li>BLEU: Originally developed for machine translation evaluation.</li>  
+        </ul>
+        <p>This distinction in their original purpose has shaped how they measure textual similarity, 
+          with ROUGE being intentionally oriented toward summarization tasks.</p>
+
+        <p>ROUGE offers several variants that capture different aspects of summarization quality:</p>
+        <ul>
+          <li>ROUGE-N: Measures n-gram overlap between generated and reference summaries.</li>
+          <li>ROUGE-L: Measures the longest common subsequence (LCS) between generated and reference summaries.</li>
+          <li>ROUGE-Lsum: Similar to ROUGE-L but calculated over entire summaries.</li>
+        </ul>
+        <p>This versatility allows researchers to evaluate both lexical coverage and structural coherence</p>
+
+        <h3>Implementation: Fine-tuning DistilBART for COVID-19 Research</h3>
+        <p>Our implementation process involved fine-tuning the pre-trained DistilBART model on the CORD-19 dataset. 
+          Here's the core training configuration we used:</p>
+        <div class="language-python highlighter-rouge">
+          <div class="highlight">
+            <pre class="highlight">
+              <code>
+                # Training arguments
+                from transformers import Seq2SeqTrainingArguments, Seq2SeqTrainer
+                
+                args = Seq2SeqTrainingArguments(
+                    output_dir="./distilbart-finetuned-cord-19",
+                    evaluation_strategy="epoch",
+                    learning_rate=2e-5,
+                    per_device_train_batch_size=12,
+                    per_device_eval_batch_size=12,
+                    weight_decay=0.01,
+                    save_total_limit=3,
+                    num_train_epochs=1,
+                    predict_with_generate=True,
+                )
+                
+                # Initialize trainer
+                trainer = Seq2SeqTrainer(
+                    model=model,
+                    args=args,
+                    train_dataset=tokenized_train,
+                    eval_dataset=tokenized_validation,
+                    data_collator=data_collator,
+                    tokenizer=tokenizer,
+                    compute_metrics=compute_metrics,
+                )
+                
+                # Start training
+                trainer.train()
+                
+              </code>
+            </pre>
+          </div>
+        <p>Initially, we planned for 5 epochs of training, but computational limitations forced us to reduce to just one epoch. 
+          Surprisingly, we achieved comparable results with the single-epoch approach, suggesting efficient knowledge transfer 
+          from the pre-trained model to our domain-specific task</p>
+
+        <h3>Training Results: How Did DistilBART Perform?</h3>
+        <p>We trained DistilBART on a subset of the CORD-19 dataset for 5 epochs using TPUs. While computational
+          constraints limited us to fewer epochs than ideal, we observed consistent improvements in evaluation
+          metrics like ROUGE-1, ROUGE-2, ROUGE-L, and ROUGE-Lsum.</p>
+        <ul>
+          <li>The ROUGE-1 score steadily increased from 35.1 to 35.7, indicating improved unigram overlap
+            between generated summaries and reference texts.</li>
+          <li>ROUGE-L, which measures longest common subsequence overlap, demonstrated a similar upward trend,
+            reaching 22.5 by the end of training. This suggests better retention of sentence structure and semantic
+            coherence.</li>
+          <li>The ROUGE-Lsum metric (focused on summary-level coherence) climbed from 32.3 to approximately 32.8,
+            reflecting incremental gains in overall summary quality.</li>
+          <li>The ROUGE-2 score, which captures bigram overlap, rose from 14.7 to just above 15.2,
+            showing enhanced contextual understanding during training.</li>
+        </ul>
+
+        <h3>Challenges and Limitations</h3>
+        <p>Despite our promising results, we encountered several significant challenges:</p>
+        <ul>
+          <li>Computational Constraints: We attempted to train Llama-2 with 7 billion parameters, 
+            but estimation showed the evaluation phase alone would require approximately 493 hours. </li>
+
+          <li>Resource Limitations: Google Colab's free version quickly reached resource limits. 
+            Even upgrading to Colab Pro ($10) provided insufficient resources, and our training sessions 
+            crashed after running for 12 hours when attempting 5 epochs.</li>
+
+          <li>Hardware Bottlenecks: Local resources, including an RTX 4070 laptop with 8GB GPU memory, 
+            proved inadequate due to memory bottlenecks.</li>
+
+          <li>Model Size Trade-offs: We explored various models including T5-small (which cost approximately 
+            50 compute units) but encountered file corruption issues when downloading the trained model.</li>
+
+          <li>Token Limitations: Our implementation restricted token sequences to 1024, necessitating truncation 
+            of longer research papers and potentially losing important information.</li>
+        </ul>
+
+        <h3>Conclusion and Future Directions</h3>
+        <p>Our DistilBART model for COVID-19 research paper summarization demonstrates the significant 
+          potential of domain-specific language models in addressing information overload in specialized 
+          biomedical fields. The substantial improvements in ROUGE scores after just one epoch of fine-tuning 
+          highlight the effectiveness of our approach</p>
+        <p>For future work, we plan to:</p>
+        <ul>
+          <li>Explore more LLMs with smaller parameter sizes specifically focused on the biomedical domain 
+            to increase efficiency and performance</li>
+
+          <li>Implement document-based question and answering capabilities to enhance interactivity</li>
+
+          <li>Develop hybrid solutions with carefully selected hyperparameters to optimize the balance 
+            between computational efficiency and summary quality</li>
+        </ul>
+        <p>In conclusion, while our current implementation has shown promising results, there remains substantial 
+          room for improvement, particularly in maintaining the critical medical insights and conclusions from 
+          original research. As the COVID-19 pandemic has demonstrated, efficient access to the latest research 
+          findings can literally save lives, making this work not just a technical challenge but a meaningful 
+          contribution to public health infrastructure.</p>
+        <!-- <div class="row">
           <div class="col-sm mt-3 mt-md-0">
             <figure>
               <picture>
@@ -220,17 +380,29 @@
           images above:</p>
         <div class="language-html highlighter-rouge">
           <div class="highlight">
-            <pre class="highlight"><code><span class="nt">&lt;div</span> <span class="na">class=</span><span class="s">"row justify-content-sm-center"</span><span class="nt">&gt;</span>
-  <span class="nt">&lt;div</span> <span class="na">class=</span><span class="s">"col-sm-8 mt-3 mt-md-0"</span><span class="nt">&gt;</span>
-    {% include figure.liquid path="assets/img/6.jpg" title="example image" class="img-fluid rounded z-depth-1" %}
-  <span class="nt">&lt;/div&gt;</span>
-  <span class="nt">&lt;div</span> <span class="na">class=</span><span class="s">"col-sm-4 mt-3 mt-md-0"</span><span class="nt">&gt;</span>
-    {% include figure.liquid path="assets/img/11.jpg" title="example image" class="img-fluid rounded z-depth-1" %}
-  <span class="nt">&lt;/div&gt;</span>
-<span class="nt">&lt;/div&gt;</span>
-</code></pre>
+            <pre class="highlight">
+              <code>
+                <span class="nt">&lt;div</span> 
+                <span class="na">class=</span>
+                <span class="s">"row justify-content-sm-center"</span>
+                <span class="nt">&gt;</span>
+                <span class="nt">&lt;div</span> 
+                <span class="na">class=</span>
+                <span class="s">"col-sm-8 mt-3 mt-md-0"</span>
+                <span class="nt">&gt;</span>
+                  {% include figure.liquid path="assets/img/6.jpg" title="example image" class="img-fluid rounded z-depth-1" %}
+                <span class="nt">&lt;/div&gt;</span>
+                <span class="nt">&lt;div</span> 
+                <span class="na">class=</span>
+                <span class="s">"col-sm-4 mt-3 mt-md-0"</span>
+                <span class="nt">&gt;</span>
+                  {% include figure.liquid path="assets/img/11.jpg" title="example image" class="img-fluid rounded z-depth-1" %}
+                <span class="nt">&lt;/div&gt;</span>
+                <span class="nt">&lt;/div&gt;</span>
+              </code>
+            </pre>
           </div>
-        </div>
+        </div> -->
       </article>
       <div id="giscus_thread" style="max-width: 930px; margin: 0 auto;">
         <script>
@@ -263,7 +435,7 @@
   <footer class="fixed-bottom" role="contentinfo">
     <div class="container mt-0"> © Copyright 2025 Peeyush Dyavarashetty. Powered by <a href="https://jekyllrb.com/"
         target="_blank" rel="external nofollow noopener">Jekyll</a> with <a
-        href="https://github.com/alshedivat/al-folio" rel="external nofollow noopener" target="_blank">al-folio</a>
+        href="https://github.com/Peeyush4/Text-Summarization" rel="external nofollow noopener" target="_blank">Text-Summarization</a>
       theme. Hosted by <a href="https://pages.github.com/" target="_blank" rel="external nofollow noopener">GitHub
         Pages</a>. Photos from <a href="https://unsplash.com" target="_blank"
         rel="external nofollow noopener">Unsplash</a>. </div>
