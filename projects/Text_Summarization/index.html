@@ -115,6 +115,28 @@ DatasetDict({
             </pre>
           </div>
         </div>
+
+        <div class="language-python highlighter-rouge">
+          <div class="highlight">
+            <pre class="highlight">
+<code><span class="c1"># Dataset structure</span>
+  <span class="nc">DatasetDict</span><span class="p">(</span>{
+      <span class="n">train</span><span class="p">:</span> <span class="nc">Dataset</span><span class="p">(</span>{
+          <span class="n">features</span><span class="p">:</span> [<span class="s">'abstract'</span>, <span class="s">'fulltext'</span>, <span class="s">'select'</span>],
+          <span class="n">num_rows</span><span class="p">:</span> 84077
+      }<span class="p">)</span>,
+      <span class="n">test</span><span class="p">:</span> <span class="nc">Dataset</span><span class="p">(</span>{
+          <span class="n">features</span><span class="p">:</span> [<span class="s">'abstract'</span>, <span class="s">'fulltext'</span>, <span class="s">'select'</span>],
+          <span class="n">num_rows</span><span class="p">:</span> 10510
+      }<span class="p">)</span>,
+      <span class="n">validation</span><span class="p">:</span> <span class="nc">Dataset</span><span class="p">(</span>{
+          <span class="n">features</span><span class="p">:</span> [<span class="s">'abstract'</span>, <span class="s">'fulltext'</span>, <span class="s">'select'</span>],
+          <span class="n">num_rows</span><span class="p">:</span> 10510
+      }<span class="p">)</span>
+  }<span class="p">)</div></code>
+            </pre>
+          </div>
+        </div>
         
         <h3>Baseline System: Simple Yet Revealing</h3>
         <p>Before implementing advanced transformer models, we established a baseline system using:</p>
@@ -182,43 +204,14 @@ tokenizer <span class="o">=</span> <span class="nc">AutoTokenizer</span><span cl
         <h3>Implementation: Fine-tuning DistilBART for COVID-19 Research</h3>
         <p>Our implementation process involved fine-tuning the pre-trained DistilBART model on the CORD-19 dataset. 
           Here's the core training configuration we used:</p>
+
         <div class="language-python highlighter-rouge">
           <div class="highlight">
             <pre class="highlight">
-<code># Training arguments
-from transformers import Seq2SeqTrainingArguments, Seq2SeqTrainer
+<code><span class="c1"># Training arguments</span>
+<span class="kn">from</span> <span class="nn">transformers</span> <span class="kn">import</span> <span class="nc">Seq2SeqTrainingArguments</span><span class="p">,</span> <span class="nc">Seq2SeqTrainer</span>
 
-args = Seq2SeqTrainingArguments(
-    output_dir="./distilbart-finetuned-cord-19",
-    evaluation_strategy="epoch",
-    learning_rate=2e-5,
-    per_device_train_batch_size=12,
-    per_device_eval_batch_size=12,
-    weight_decay=0.01,
-    save_total_limit=3,
-    num_train_epochs=1,
-    predict_with_generate=True,
-)
-
-<span class="nt"># Initialize trainer</span>
-trainer = Seq2SeqTrainer(
-    model=model,
-    args=args,
-    train_dataset=tokenized_train,
-    eval_dataset=tokenized_validation,
-    data_collator=data_collator,
-    tokenizer=tokenizer,
-    compute_metrics=compute_metrics,
-)
-
-<span class="nt"># Start training</span>
-trainer.train()</code>
-            </pre>
-          </div>
-
-          <div class="language-python highlighter-rouge">
-            <pre class="highlight">
-<code><span class="n">args</span> <span class="o">=</span> <span class="nc">Seq2SeqTrainingArguments</span><span class="p">(</span>
+<span class="n">args</span> <span class="o">=</span> <span class="nc">Seq2SeqTrainingArguments</span><span class="p">(</span>
   <span class="n">output_dir</span><span class="o">=</span><span class="s">"./distilbart-finetuned-cord-19"</span><span class="p">,</span>
   <span class="n">evaluation_strategy</span><span class="o">=</span><span class="s">"epoch"</span><span class="p">,</span>
   <span class="n">learning_rate</span><span class="o">=</span>2e-5<span class="p">,</span>
@@ -243,7 +236,8 @@ trainer.train()</code>
 
 <span class="c1"># Start training</span>
 <span class="n">trainer</span><span class="o">.</span><span class="n">train</span><span class="p">()</span></code>
-          </pre>
+            </pre>
+          </div>
         </div>
 
         <p>Initially, we planned for 5 epochs of training, but computational limitations forced us to reduce to just one epoch. 
