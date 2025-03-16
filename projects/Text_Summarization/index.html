@@ -97,7 +97,7 @@
         <div class="language-python highlighter-rouge">
           <div class="highlight">
             <pre class="highlight">
-              <code><span class="nt"># Dataset structure</span>
+<code><span class="nt"># Dataset structure</span>
 DatasetDict({
     train: Dataset({
         features: ['abstract', 'fulltext', 'select'],
@@ -144,7 +144,7 @@ DatasetDict({
         <div class="language-python highlighter-rouge">
           <div class="highlight">
             <pre class="highlight">
-              <code><span class="nt"># Importing the pre-trained model and tokenizer</span>
+<code><span class="nt"># Importing the pre-trained model and tokenizer</span>
 from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
 
 model_name = <span class="s">"lxyuan/distilbart-finetuned-summarization"</span>
@@ -185,7 +185,7 @@ tokenizer = AutoTokenizer.from_pretrained(model_name)</code>
         <div class="language-python highlighter-rouge">
           <div class="highlight">
             <pre class="highlight">
-              <code><span class="nt"># Training arguments</span>
+<code><span class="nt"># Training arguments</span>
 from transformers import Seq2SeqTrainingArguments, Seq2SeqTrainer
 
 args = Seq2SeqTrainingArguments(
