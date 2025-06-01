@@ -121,6 +121,73 @@
           for training or validation.</p>
         <p>If you are using parallel training, then from each shard, B * T * number_of_gpus + 1 tokens are read.
           Later, these tokens are read based on the process number. </p>
+        
+        <h2>Model Pipeline</h2>
+        <p>The GPT-2 model takes tokens and converts them to 768-dimensional embeddings, then adds positional encodings 
+          and finally passes them through the transformer blocks. There are 12 transformer blocks with each 
+          containing 12 multi-head attention layers, with each attention block containing 12 attention heads, and
+          feed-forward layer. The output of the transformer blocks is then passed through a linear layer to get the 
+          logits, which are then passed through a softmax layer to get the probabilities of the next token in the 
+          sequence. Below is the code for the GPT2 structure.</p>
+        </p>
+
+        <div class="language-python highlighter-rouge">
+          <div class="highlight">
+            <pre class="highlight">
+<code><span class="k">class</span> <span class="nc">GPT</span><span class="p">(</span><span class="nn">nn</span><span class="o">.</span><span class="nc">Module</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">config</span>
+
+        <span class="c1"># Developing Transformer</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">transformer</span> <span class="o">=</span> <span class="nn">nn</span><span class="o">.</span><span class="nc">ModuleDict</span><span class="p">({</span>
+            <span class="s">'wte'</span><span class="p">:</span> <span class="nn">nn</span><span class="o">.</span><span class="nc">Embedding</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">vocab_size</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">n_embed</span><span class="p">),</span> <span class="c1"># Token embedding weights</span>
+            <span class="s">'wpe'</span><span class="p">:</span> <span class="nn">nn</span><span class="o">.</span><span class="nc">Embedding</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">block_size</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">n_embed</span><span class="p">),</span> <span class="c1"># Positional embedding weights</span>
+            <span class="s">'h'</span><span class="p">:</span> <span class="nn">nn</span><span class="o">.</span><span class="nc">ModuleList</span><span class="p">([</span><span class="nc">Block</span><span class="p">(</span><span class="n">config</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">n_layer</span><span class="p">)]),</span> <span class="c1"># All transformer blocks</span>
+            <span class="s">'ln_f'</span><span class="p">:</span> <span class="nn">nn</span><span class="o">.</span><span class="nc">LayerNorm</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">n_embed</span><span class="p">)</span>
+        <span class="p">})</span>
+
+        <span class="c1"># Final Linear layer after all transformer blocks</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lm_head</span> <span class="o">=</span> <span class="nn">nn</span><span class="o">.</span><span class="nc">Linear</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">n_embed</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">vocab_size</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    
+        <span class="c1"># Weight sharing scheme</span>
+        <span class="c1"># This is for sharing the weights between token and positional embeddings</span>
+        <span class="c1"># Reason: Since they are semantically similar, they should have similar weights</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lm_head</span><span class="o">.</span><span class="n">weight</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transformer</span><span class="p">[</span><span class="s">'wte'</span><span class="p">]</span><span class="o">.</span><span class="n">weight</span>
+
+        <span class="c1"># Initialize parameters with mean 0 and standard deviation 0.02 because 1/sqrt(768), 1/sqrt(1600)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_init_weights</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">,</span> <span class="n">targets</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">B</span><span class="p">,</span> <span class="n">T</span> <span class="o">=</span> <span class="n">idx</span><span class="o">.</span><span class="n">size</span><span class="p">()</span>
+        <span class="k">assert</span> <span class="n">T</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">block_size</span><span class="p">,</span> <span class="sa">f</span><span class="s">"Cannot forward sequence of length </span><span class="si">{</span><span class="n">T</span><span class="si">}</span><span class="s">, model block size is </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">block_size</span><span class="si">}</span><span class="s">"</span>
+
+        <span class="c1"># IMP: Token and Positional Embeddings</span>
+        <span class="n">pos</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">idx</span><span class="o">.</span><span class="n">device</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">long</span><span class="p">)</span>
+        <span class="n">pos_emb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transformer</span><span class="o">.</span><span class="n">wpe</span><span class="p">(</span><span class="n">pos</span><span class="p">)</span>  <span class="c1">#Positional Embeddings of shape (T, n_embed)</span>
+        <span class="n">tok_emb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transformer</span><span class="o">.</span><span class="n">wte</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>  <span class="c1">#Token Embeddings of shape (B, T, n_embed)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">tok_emb</span> <span class="o">+</span> <span class="n">pos_emb</span> <span class="c1"># broadcast along the batch dimension</span>
+
+        <span class="c1"># Forward pass through each transformer block</span>
+        <span class="k">for</span> <span class="n">block</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">transformer</span><span class="o">.</span><span class="n">h</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">block</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        
+        <span class="c1"># Final Linear layer</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transformer</span><span class="o">.</span><span class="n">ln_f</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lm_head</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+        <span class="c1"># Loss function</span>
+        <span class="n">loss</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">targets</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">loss</span> <span class="o">=</span> <span class="nn">F</span><span class="o">.</span><span class="n">cross_entropy</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)),</span> <span class="n">targets</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">x</span><span class="p">,</span> <span class="n">loss</span></code>
+            </pre>
+          </div>
+        </div>
+
+        <p><b>Chinchilla Scaling Law:</b> The Chinchilla Scaling law states that optimal performance is achieved 
+          when the number of training tokens should be at least 2 times the number of parameter of parameters. Since the 
+          number of tokens are 10 billion and the number of parameters are 124 million, this law is satisfied. </p>
         <div class="row">
           <div class="col-sm mt-3 mt-md-0">
             <figure>
