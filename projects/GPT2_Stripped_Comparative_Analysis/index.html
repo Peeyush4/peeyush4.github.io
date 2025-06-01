@@ -160,7 +160,8 @@
 
     <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">,</span> <span class="n">targets</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="n">B</span><span class="p">,</span> <span class="n">T</span> <span class="o">=</span> <span class="n">idx</span><span class="o">.</span><span class="n">size</span><span class="p">()</span>
-        <span class="k">assert</span> <span class="n">T</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">block_size</span><span class="p">,</span> <span class="sa">f</span><span class="s">"Cannot forward sequence of length </span><span class="si">{</span><span class="n">T</span><span class="si">}</span><span class="s">, model block size is </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">block_size</span><span class="si">}</span><span class="s">"</span>
+        <span class="k">assert</span> <span class="n">T</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">block_size</span><span class="p">,</span> 
+            <span class="sa">f</span><span class="s">"Cannot forward sequence of length </span><span class="si">{</span><span class="n">T</span><span class="si">}</span><span class="s">, model block size is </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">block_size</span><span class="si">}</span><span class="s">"</span>
 
         <span class="c1"># IMP: Token and Positional Embeddings</span>
         <span class="n">pos</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">idx</span><span class="o">.</span><span class="n">device</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">long</span><span class="p">)</span>
@@ -188,7 +189,7 @@
         <p><b>Chinchilla Scaling Law:</b> The Chinchilla Scaling law states that optimal performance is achieved 
           when the number of training tokens should be at least 2 times the number of parameter of parameters. Since the 
           number of tokens are 10 billion and the number of parameters are 124 million, this law is satisfied. </p>
-        <div class="row">
+        <!-- <div class="row">
           <div class="col-sm mt-3 mt-md-0">
             <figure>
               <picture>
@@ -296,34 +297,34 @@
 <span class="nt">&lt;/div&gt;</span>
 </code></pre>
           </div>
-        </div>
+        </div> -->
       </article>
       <h2>References</h2>
       <div class="publications">
-        <h2 class="bibliography">1950</h2>
+        <h2 class="bibliography">2019</h2>
         <ol class="bibliography">
           <li>
             <div class="row">
               <div class="col col-sm-2 abbr"> <abbr class="badge rounded w-100" style="background-color:#00369f"> <a
-                    href="https://aapt.scitation.org/journal/ajp" rel="external nofollow noopener"
-                    target="_blank">AJP</a> </abbr> </div>
+                    href="https://openai.com/research/" rel="external nofollow noopener"
+                    target="_blank">OAB</a> </abbr> </div>
               <div id="einstein1950meaning" class="col-sm-8">
-                <div class="title">The meaning of relativity</div>
-                <div class="author"> <em>Albert Einstein</em>, and AH Taub </div>
-                <div class="periodical"> <em>American Journal of Physics</em>, 1950 </div>
+                <div class="title">Language models are unsupervised multitask learners</div>
+                <div class="author"> Radford, Alec and Wu, Jeffrey and Child, Rewon and Luan, David and Amodei, Dario and Sutskever, Ilya and others </div>
+                <div class="periodical"> OpenAI blog </div>
                 <div class="periodical"> </div>
                 <div class="links"> <a class="bibtex btn btn-sm z-depth-0" role="button">Bib</a> </div>
                 <div class="bibtex hidden">
                   <figure class="highlight">
-                    <pre><code class="language-bibtex" data-lang="bibtex"><span class="nc">@article</span><span class="p">{</span><span class="nl">einstein1950meaning</span><span class="p">,</span>
-  <span class="na">title</span> <span class="p">=</span> <span class="s">{The meaning of relativity}</span><span class="p">,</span>
-  <span class="na">author</span> <span class="p">=</span> <span class="s">{Einstein, Albert and Taub, AH}</span><span class="p">,</span>
-  <span class="na">journal</span> <span class="p">=</span> <span class="s">{American Journal of Physics}</span><span class="p">,</span>
-  <span class="na">volume</span> <span class="p">=</span> <span class="s">{18}</span><span class="p">,</span>
-  <span class="na">number</span> <span class="p">=</span> <span class="s">{6}</span><span class="p">,</span>
-  <span class="na">pages</span> <span class="p">=</span> <span class="s">{403--404}</span><span class="p">,</span>
-  <span class="na">year</span> <span class="p">=</span> <span class="s">{1950}</span><span class="p">,</span>
-  <span class="na">publisher</span> <span class="p">=</span> <span class="s">{American Association of Physics Teachers}</span>
+                    <pre><code class="language-bibtex" data-lang="bibtex"><span class="nc">@article</span><span class="p">{</span><span class="nl">radford2019language</span><span class="p">,</span>
+  <span class="na">title</span> <span class="p">=</span> <span class="s">{Language models are unsupervised multitask learners}</span><span class="p">,</span>
+  <span class="na">author</span> <span class="p">=</span> <span class="s">{Radford, Alec and Wu, Jeffrey and Child, Rewon and Luan, David and Amodei, Dario and Sutskever, Ilya and others}</span><span class="p">,</span>
+  <span class="na">journal</span> <span class="p">=</span> <span class="s">{OpenAI blog}</span><span class="p">,</span>
+  <span class="na">volume</span> <span class="p">=</span> <span class="s">{1}</span><span class="p">,</span>
+  <span class="na">number</span> <span class="p">=</span> <span class="s">{8}</span><span class="p">,</span>
+  <span class="na">pages</span> <span class="p">=</span> <span class="s">{9}</span><span class="p">,</span>
+  <span class="na">year</span> <span class="p">=</span> <span class="s">{2019}</span><span class="p">,</span>
+  <!-- <span class="na">publisher</span> <span class="p">=</span> <span class="s">{American Association of Physics Teachers}</span> -->
 <span class="p">}</span></code></pre>
                   </figure>
                 </div>
